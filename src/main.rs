@@ -1,3 +1,5 @@
+use std::fs;
+
 pub fn count_increasing(depth_measurements: &[i32]) -> i32 {
     use std::i32::MAX;
 
@@ -39,5 +41,13 @@ mod tests {
 
 
 fn main() {
-    // count_increasing();
+    let depth_measurements: Vec<i32> = fs::read_to_string("src/inputs/day_1_input.txt")
+        .expect("Failed to read file")
+        .lines()
+        .map(|x| x.parse::<i32>().unwrap())
+        .collect();
+
+    let result = count_increasing(&depth_measurements);
+
+    println!("Count: {}", result)
 }
