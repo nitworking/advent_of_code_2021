@@ -1,6 +1,6 @@
 use std::fs;
 
-pub fn count_increasing(depth_measurements: &[i32]) -> i32 {
+pub fn count_increasing(depth_measurements: &Vec<i32>) -> i32 {
     use std::i32::MAX;
 
     let mut bigger_than_previous: i32 = 0;
@@ -16,13 +16,21 @@ pub fn count_increasing(depth_measurements: &[i32]) -> i32 {
     return bigger_than_previous;
 }
 
+pub fn count_increasing_windowed(depth_measurements: &[i32], window_size: usize) -> i32 {
+    let windows = depth_measurements.windows(window_size)
+        .map(|x| x.iter().sum())
+        .collect::<Vec<i32>>();
+
+    return count_increasing(&windows);
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn example_exercise() {
-        let depth_measurements = [
+    fn example_exercise_part_1() {
+        let depth_measurements = vec!(
             199,
             200,
             208,
@@ -33,9 +41,27 @@ mod tests {
             269,
             260,
             263,
-        ];
+        );
 
         assert_eq!(7, count_increasing(&depth_measurements));
+    }
+
+    #[test]
+    fn example_exercise_part_2() {
+        let depth_measurements = vec!(
+            199,
+            200,
+            208,
+            210,
+            200,
+            207,
+            240,
+            269,
+            260,
+            263,
+        );
+
+        assert_eq!(5, count_increasing_windowed(&depth_measurements, 3));
     }
 }
 
@@ -48,6 +74,8 @@ fn main() {
         .collect();
 
     let result = count_increasing(&depth_measurements);
-
-    println!("Count: {}", result)
+    println!("Count: {}", result);
+    
+    let result = count_increasing_windowed(&depth_measurements, 3);
+    println!("Count windowed: {}", result);
 }
