@@ -41,45 +41,24 @@ fn calculate_power_consumption(diagnostics: &Vec<String>) -> i32 {
 fn calculate_life_support_rating(diagnostics: &Vec<String>) -> usize {
     let mut transposed: Vec<Vec<u32>> = vec![Vec::<u32>::new(); diagnostics[0].len()];
 
+    //column-indexed easier for searching
     for reading in diagnostics {
         for (index, digit) in reading.chars().enumerate() {
             transposed[index].push(digit.to_digit(10).unwrap())
         }
     }
 
-    let oxygen_generator_rating = usize::from_str_radix(&diagnostics[_calculate_oxygen_generator_rating_index(&transposed)], 2).unwrap();
-    let co2_scrubber_rating = usize::from_str_radix(&diagnostics[_calculate_co2_scrubber_rating_index(&transposed)], 2).unwrap();
+    let oxygen_generator_rating = usize::from_str_radix(&diagnostics[_calculate_rating_index(&transposed, Rating::OxygenGenerator)], 2).unwrap();
+    let co2_scrubber_rating = usize::from_str_radix(&diagnostics[_calculate_rating_index(&transposed, Rating::Co2Scrubber)], 2).unwrap();
     return oxygen_generator_rating * co2_scrubber_rating;
 }
 
-fn _calculate_oxygen_generator_rating_index(diagnostics: &Vec<Vec<u32>>) -> usize {
-    let mut in_consideration: Vec<usize> = (0..diagnostics[0].len()).collect();
-    let mut column_index = 0;
-
-    while in_consideration.len() > 1 {
-        let threshold = ((in_consideration.len() as f32) / 2.0).ceil() as u32;
-        let mut sum = 0;
-        
-        for row_index in &in_consideration {
-            sum += diagnostics[column_index][*row_index]
-        }
-        
-        let most_common_bit = (sum >= threshold) as u32;
-        let mut filtered: Vec<usize> = Vec::new();
-        for row_index in &in_consideration {
-            if diagnostics[column_index][*row_index] == most_common_bit {
-                filtered.push(*row_index);
-            }
-        }
-
-        in_consideration = filtered;
-        column_index += 1;
-    }
-
-    return in_consideration[0];
+enum Rating {
+    OxygenGenerator,
+    Co2Scrubber,
 }
 
-fn _calculate_co2_scrubber_rating_index(diagnostics: &Vec<Vec<u32>>) -> usize {
+fn _calculate_rating_index(diagnostics: &Vec<Vec<u32>>, rating: Rating) -> usize {
     let mut in_consideration: Vec<usize> = (0..diagnostics[0].len()).collect();
     let mut column_index = 0;
 
@@ -91,10 +70,14 @@ fn _calculate_co2_scrubber_rating_index(diagnostics: &Vec<Vec<u32>>) -> usize {
             sum += diagnostics[column_index][*row_index]
         }
         
-        let least_common_bit = (sum < threshold) as u32;
+        let priority_bit = match rating {
+            Rating::OxygenGenerator => sum >= threshold,
+            Rating::Co2Scrubber => sum < threshold,
+        } as u32;
+
         let mut filtered: Vec<usize> = Vec::new();
         for row_index in &in_consideration {
-            if diagnostics[column_index][*row_index] == least_common_bit {
+            if diagnostics[column_index][*row_index] == priority_bit {
                 filtered.push(*row_index);
             }
         }
